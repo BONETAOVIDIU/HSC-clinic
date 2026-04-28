@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HSC — High Standard Control</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080C14;--sb:#0C1220;--card:#111827;--card2:#1C2537;--border:#1E2D45;--accent:#2DD4BF;--blue:#3B82F6;--purple:#8B5CF6;--red:#EF4444;--yellow:#F59E0B;--green:#10B981;--orange:#F97316;--text:#E2E8F0;--t2:#94A3B8;--t3:#475569;}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden;font-size:14px;}
+.sb{width:210px;min-width:210px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px 0;}
+.logo{padding:10px 16px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#080C14;}
+.ng{padding:4px 10px;font-size:10px;color:var(--t3);letter-spacing:.1em;font-weight:700;text-transform:uppercase;margin:10px 0 3px;}
+.nb{width:calc(100% - 16px);margin:1px 8px;background:none;border:none;color:var(--t2);padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:13px;font-family:inherit;border-radius:7px;transition:all .15s;text-align:left;}
+.nb:hover{background:rgba(255,255,255,.05);color:var(--text);}
+.nb.on{background:rgba(45,212,191,.12);color:var(--accent);font-weight:600;}
+.ua{margin-top:auto;padding:10px;border-top:1px solid var(--border);}
+.av{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#080C14;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{padding:10px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--sb);min-height:52px;}
+.sp{flex:1;}
+.content{flex:1;overflow-y:auto;padding:20px;}
+.btn{border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+.btn-p{background:var(--accent);color:#080C14;}
+.btn-s{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+.btn-d{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:14px 16px;}
+.sv{font-size:24px;font-weight:700;margin:6px 0 4px;}
+.sl{font-size:11px;color:var(--t2);}
+.ss{font-size:11px;color:var(--t3);}
+.tw{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{padding:9px 14px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.et{text-align:center;color:var(--t3);padding:40px!important;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.bg{background:rgba(16,185,129,.12);color:var(--green);}
+.br{background:rgba(239,68,68,.12);color:var(--red);}
+.by{background:rgba(245,158,11,.12);color:var(--yellow);}
+.bb{background:rgba(59,130,246,.12);color:var(--blue);}
+.bgr{background:var(--card2);color:var(--t2);}
+.inp{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%;}
+.inp:focus{border-color:var(--accent);}
+.ig{margin-bottom:13px;}
+.il{font-size:11px;color:var(--t2);margin-bottom:4px;display:block;font-weight:600;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.full{grid-column:1/-1;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px);}
+.md{background:var(--card);border:1px solid var(--border);border-radius:14px;width:560px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;}
+.mh{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mb{padding:22px;overflow-y:auto;flex:1;}
+.mf{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+.cx{background:none;border:none;color:var(--t3);cursor:pointer;font-size:20px;line-height:1;}
+.ft{display:flex;gap:3px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:3px;}
+.ftb{border:none;background:none;color:var(--t2);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:500;transition:.15s;white-space:nowrap;}
+.ftb.on{background:var(--accent);color:#080C14;font-weight:700;}
+.ai{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:7px;display:flex;gap:14px;align-items:flex-start;}
+.at{font-family:monospace;font-size:12px;color:var(--accent);min-width:44px;}
+.an{flex:1;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 16px;font-size:12px;z-index:2000;display:flex;align-items:center;gap:7px;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.toast.ok{border-color:var(--green);}
+.toast.er{border-color:var(--red);}
+.ld{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--t3);}
+.sp2{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;margin-right:8px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:10px;overflow:hidden;}
+.cal-d{background:var(--card);padding:6px 4px;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;text-align:center;}
+.cal-c{background:var(--card);min-height:80px;padding:6px;cursor:pointer;}
+.cal-c:hover{background:var(--card2);}
+.cal-c.td{box-shadow:inset 0 0 0 2px var(--accent);}
+.cal-c.om{opacity:.4;}
+.cal-n{font-size:12px;font-weight:700;margin-bottom:4px;}
+.cal-e{border-radius:3px;padding:2px 4px;font-size:10px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.e1{background:rgba(45,212,191,.2);color:var(--accent);border-left:2px solid var(--accent);}
+.e2{background:rgba(59,130,246,.2);color:var(--blue);border-left:2px solid var(--blue);}
+.e3{background:rgba(139,92,246,.2);color:var(--purple);border-left:2px solid var(--purple);}
+.pb{background:var(--border);border-radius:4px;height:6px;flex:1;}
+.pf{height:6px;border-radius:4px;background:var(--accent);}
+</style>
+</head>
+<body>
+<div class="sb">
+  <div class="logo">
+    <div class="logo-icon">HSC</div>
+    <div><div style="font-size:13px;font-weight:700">High Standard</div><div style="font-size:10px;color:var(--t3)">Control Platform</div></div>
+  </div>
+  <div class="ng">Principal</div>
+  <button class="nb on" onclick="go('dashboard')">📊 Dashboard</button>
+  <button class="nb" onclick="go('calendar')">📅 Calendar</button>
+  <button class="nb" onclick="go('patients')">👥 Pacienți</button>
+  <div class="ng">Vânzări</div>
+  <button class="nb" onclick="go('leads')">🎯 Leads</button>
+  <button class="nb" onclick="go('subscriptions')">🎫 Abonamente</button>
+  <button class="nb" onclick="go('services')">🛠 Servicii</button>
+  <button class="nb" onclick="go('booking')">🔗 Booking Online</button>
+  <div class="ng">Analiză</div>
+  <button class="nb" onclick="go('reports')">📈 Rapoarte</button>
+  <button class="nb" onclick="go('team')">👨‍⚕️ Echipă</button>
+  <div class="ua">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px;border-radius:8px;background:var(--card2)">
+      <div class="av">OV</div>
+      <div><div style="font-size:12px;font-weight:600">Ovidiu</div><div style="font-size:10px;color:var(--t3)">Admin</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div style="font-size:15px;font-weight:700" id="pg-title">Dashboard</div>
+      <div style="font-size:11px;color:var(--t3)" id="pg-sub"></div>
+    </div>
+    <div class="sp"></div>
+    <button class="btn btn-p" id="top-btn" onclick="topAct()">➕ Adaugă</button>
+  </div>
+  <div class="content" id="content"><div class="ld"><div class="sp2"></div>Se încarcă...</div></div>
+</div>
+
+<!-- MODAL PACIENT -->
+<div class="mo" id="m-pat" style="display:none">
+<div class="md">
+  <div class="mh"><span style="font-size:15px;font-weight:700" id="m-pat-t">Pacient Nou</span><button class="cx" onclick="cm('m-pat')">×</button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="ig"><label class="il">Prenume *</label><input class="inp" id="pp" placeholder="Prenume"/></div>
+      <div class="ig"><label class="il">Nume</label><input class="inp" id="pn" placeholder="Nume"/></div>
+      <div class="ig"><label class="il">Telefon</label><input class="inp" id="pt" placeholder="07xx xxx xxx"/></div>
+      <div class="ig"><label class="il">Email</label><input class="inp" id="pe" placeholder="email@exemplu.com"/></div>
+      <div class="ig"><label class="il">Sex</label><select class="inp" id="ps"><option value="">—</option><option>Masculin</option><option>Feminin</option></select></div>
+      <div class="ig"><label class="il">Data nașterii</label><input class="inp" type="date" id="pd"/></div>
+      <div class="ig"><label class="il">Status</label><select class="inp" id="pst"><option value="activ">Activ</option><option value="inactiv">Inactiv</option><option value="nou">Nou</option></select></div>
+      <div class="ig"><label class="il">Abonament</label><select class="inp" id="pa"><option value="">Fără</option><option>5 ședințe</option><option>10 ședințe</option><option>20 ședințe</option><option>Lunar</option></select></div>
+      <div class="ig full"><label class="il">Diagnostic</label><input class="inp" id="pdiag" placeholder="Diagnostic principal"/></div>
+      <div class="ig full"><label class="il">Note</label><textarea class="inp" id="pnote" rows="2" style="resize:vertical" placeholder="Observații..."></textarea></div>
+      <div class="ig"><label class="il">Recomandat de</label><input class="inp" id="prec" placeholder="Persoană / clinică"/></div>
+      <div class="ig"><label class="il">Asigurare</label><input class="inp" id="pasig" placeholder="Tip asigurare"/></div>
+    </div>
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="cm('m-pat')">Anulează</button><button class="btn btn-p" onclick="savePat()">💾 Salvează</button></div>
+</div></div>
+
+<!-- MODAL PROGRAMARE -->
+<div class="mo" id="m-appt" style="display:none">
+<div class="md">
+  <div class="mh"><span style="font-size:15px;font-weight:700">Programare Nouă</span><button class="cx" onclick="cm('m-appt')">×</button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="ig full"><label class="il">Pacient</label><input class="inp" id="ap" placeholder="Caută pacient..."/><div id="ap-s" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:7px;margin-top:3px;max-height:120px;overflow-y:auto;"></div></div>
+      <div class="ig"><label class="il">Serviciu</label><select class="inp" id="asvc"><option>Kinetoterapie 50min</option><option>Masaj 60min</option><option>TECAR 30min</option><option>EMS 45min</option><option>Evaluare 30min</option></select></div>
+      <div class="ig"><label class="il">Terapeut</label><select class="inp" id="ath"><option>Ana Ionescu</option><option>Mihai Pop</option><option>Ovidiu</option></select></div>
+      <div class="ig"><label class="il">Data</label><input class="inp" type="date" id="adate"/></div>
+      <div class="ig"><label class="il">Ora</label><input class="inp" type="time" id="atime"/></div>
+      <div class="ig"><label class="il">Durată</label><select class="inp" id="adur"><option value="30">30 min</option><option value="45">45 min</option><option value="50" selected>50 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
+      <div class="ig"><label class="il">Status</label><select class="inp" id="ast"><option value="confirmat">Confirmat</option><option value="neconfirmat">Neconfirmat</option><option value="anulat">Anulat</option></select></div>
+      <div class="ig full"><label class="il">Note</label><textarea class="inp" id="anote" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="cm('m-appt')">Anulează</button><button class="btn btn-p" onclick="saveAppt()">💾 Salvează</button></div>
+</div></div>
+
+<!-- MODAL ABONAMENT -->
+<div class="mo" id="m-abo" style="display:none">
+<div class="md" style="width:500px">
+  <div class="mh"><span style="font-size:15px;font-weight:700">Abonament Nou</span><button class="cx" onclick="cm('m-abo')">×</button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="ig full"><label class="il">Pacient *</label><input class="inp" id="abp" placeholder="Caută pacient..."/></div>
+      <div class="ig full"><label class="il">Serviciu</label><select class="inp" id="absvc"><option>Kinetoterapie</option><option>Masaj</option><option>Fizioterapie & Kinetoterapie</option><option>Fizioterapie & Masaj</option><option>Masaj Complex</option><option>EMS</option><option>Antrenament Functional</option><option>Toate serviciile</option></select></div>
+      <div class="ig"><label class="il">Tip abonament</label><select class="inp" id="abtip" onchange="aboC()"><option value="custom">Custom (introduc eu)</option><option value="5">5 ședințe</option><option value="10">10 ședințe</option><option value="20">20 ședințe</option><option value="lunar">Lunar (nelimitat)</option></select></div>
+      <div class="ig"><label class="il">Nr. ședințe *</label><input class="inp" type="number" id="abnr" placeholder="ex: 7" min="1" oninput="aboCalc()"/></div>
+      <div class="ig"><label class="il">Durată / ședință (min)</label><input class="inp" type="number" id="abdur" placeholder="ex: 50" min="1"/></div>
+      <div class="ig"><label class="il">Preț total (RON) *</label><input class="inp" type="number" id="abpret" placeholder="0" oninput="aboCalc()"/></div>
+      <div class="ig full" id="ab-calc-wrap" style="display:none">
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--t2)">
+          💡 Preț per ședință: <strong id="ab-ps" style="color:var(--accent)">—</strong>
+        </div>
+      </div>
+      <div class="ig"><label class="il">Data start</label><input class="inp" type="date" id="abstart"/></div>
+      <div class="ig"><label class="il">Expiră la</label><input class="inp" type="date" id="abexp"/></div>
+      <div class="ig full"><label class="il">Note</label><input class="inp" id="abnote" placeholder="Observații despre abonament..."/></div>
+    </div>
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="cm('m-abo')">Anulează</button><button class="btn btn-p" onclick="saveAbo()">💾 Salvează</button></div>
+</div></div>
+
+<!-- MODAL LEAD -->
+<div class="mo" id="m-lead" style="display:none">
+<div class="md" style="width:440px">
+  <div class="mh"><span style="font-size:15px;font-weight:700">Lead Nou</span><button class="cx" onclick="cm('m-lead')">×</button></div>
+  <div class="mb">
+    <div class="fg">
+      <div class="ig"><label class="il">Prenume</label><input class="inp" id="lp" placeholder="Prenume"/></div>
+      <div class="ig"><label class="il">Nume</label><input class="inp" id="ln" placeholder="Nume"/></div>
+      <div class="ig"><label class="il">Telefon</label><input class="inp" id="lt" placeholder="07xx xxx xxx"/></div>
+      <div class="ig"><label class="il">Email</label><input class="inp" id="le" placeholder="email@exemplu.com"/></div>
+      <div class="ig"><label class="il">Sursă</label><select class="inp" id="lsrc"><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="google">Google</option><option value="referral">Referral</option><option value="manual">Manual</option></select></div>
+      <div class="ig"><label class="il">Serviciu interes</label><select class="inp" id="lsvc"><option>Kinetoterapie</option><option>Masaj</option><option>EMS</option><option>Evaluare</option><option>Altele</option></select></div>
+      <div class="ig full"><label class="il">Notă</label><textarea class="inp" id="lnote" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+  </div>
+  <div class="mf"><button class="btn btn-s" onclick="cm('m-lead')">Anulează</button><button class="btn btn-p" onclick="saveLead()">💾 Salvează</button></div>
+</div></div>
+
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+var SURL = 'https://fnvwrstpoyejmgicqxlb.supabase.co';
+var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZudndyc3Rwb3llam1naWNxeGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxNjA1MjAsImV4cCI6MjA5MjczNjUyMH0.VnyYvy8UEKQlVsQcWcYaeCoV02gjHdAeX7m8WRllYRo';
+var db = supabase.createClient(SURL, SKEY);
+
+var page = 'dashboard';
+var calView = 'month';
+var calDate = new Date();
+var editPatId = null;
+var patFilter = 'toti';
+var leadFilter = 'toti';
+
+function go(p) {
+  page = p;
+  document.querySelectorAll('.nb').forEach(function(b) { b.classList.remove('on'); });
+  var map = {dashboard:0,calendar:1,patients:2,leads:3,subscriptions:4,services:5,booking:6,reports:7,team:8};
+  var btns = document.querySelectorAll('.nb');
+  if (btns[map[p]]) btns[map[p]].classList.add('on');
+  var titles = {dashboard:'Dashboard',calendar:'Calendar',patients:'Pacienți',leads:'Leads',subscriptions:'Abonamente',services:'Servicii',booking:'Booking Online',reports:'Rapoarte',team:'Echipă'};
+  var acts = {dashboard:'➕ Adaugă',calendar:'➕ Programare',patients:'➕ Pacient Nou',leads:'➕ Lead Nou',subscriptions:'➕ Abonament',services:'',booking:'🔗 Link',reports:'📥 Export',team:'➕ Membru'};
+  document.getElementById('pg-title').textContent = titles[p] || p;
+  document.getElementById('pg-sub').textContent = new Date().toLocaleDateString('ro-RO', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('top-btn').innerHTML = acts[p] || '➕';
+  document.getElementById('top-btn').style.display = acts[p] ? '' : 'none';
+  render();
+}
+
+function topAct() {
+  if (page === 'patients') { editPatId = null; document.getElementById('m-pat-t').textContent = 'Pacient Nou'; clearF(['pp','pn','pt','pe','pd','pdiag','pnote','prec','pasig']); om('m-pat'); }
+  else if (page === 'calendar') { document.getElementById('adate').value = td(); document.getElementById('atime').value = '09:00'; om('m-appt'); }
+  else if (page === 'leads') { clearF(['lp','ln','lt','le','lnote']); om('m-lead'); }
+  else if (page === 'subscriptions') { clearF(['abp','abpret','abstart','abexp']); om('m-abo'); }
+  else if (page === 'booking') { toast('Link copiat!', 'ok'); }
+}
+
+function clearF(ids) { ids.forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; }); }
+
+async function render() {
+  var c = document.getElementById('content');
+  c.innerHTML = '<div class="ld"><div class="sp2"></div>Se încarcă...</div>';
+  try {
+    if (page === 'dashboard') await renderDash();
+    else if (page === 'calendar') await renderCal();
+    else if (page === 'patients') await renderPats();
+    else if (page === 'leads') await renderLeads();
+    else if (page === 'subscriptions') await renderSubs();
+    else if (page === 'services') await renderSvcs();
+    else if (page === 'reports') await renderReports();
+    else if (page === 'team') await renderTeam();
+    else if (page === 'booking') renderBooking();
+  } catch(e) {
+    c.innerHTML = '<div class="ld">Eroare: ' + e.message + '</div>';
+  }
+}
+
+async function q(table, opts) {
+  try {
+    var r = db.from(table).select(opts && opts.select ? opts.select : '*');
+    if (opts && opts.eq) r = r.eq(opts.eq[0], opts.eq[1]);
+    if (opts && opts.order) r = r.order(opts.order[0], {ascending: opts.order[1] !== false});
+    if (opts && opts.limit) r = r.limit(opts.limit);
+    if (opts && opts.count) r = db.from(table).select('*', {count:'exact',head:true}).eq(opts.eq[0], opts.eq[1]);
+    var res = await r;
+    return res.data || res.count || 0;
+  } catch(e) { return opts && opts.count ? 0 : []; }
+}
+
+async function renderDash() {
+  var pc = 0, ac = 0, lc = 0, sc = 0;
+  try { var r = await db.from('patients').select('*',{count:'exact',head:true}); pc = r.count || 0; } catch(e) {}
+  try { var r = await db.from('appointments').select('*',{count:'exact',head:true}).eq('date', td()); ac = r.count || 0; } catch(e) {}
+  try { var r = await db.from('leads').select('*',{count:'exact',head:true}).eq('status','nou'); lc = r.count || 0; } catch(e) {}
+  try { var r = await db.from('subscriptions').select('*',{count:'exact',head:true}).eq('status','activ'); sc = r.count || 0; } catch(e) {}
+  var ta = [], rp = [];
+  try { var r = await db.from('appointments').select('*').eq('date', td()).order('time'); ta = r.data || []; } catch(e) {}
+  try { var r = await db.from('patients').select('*').order('created_at', {ascending:false}).limit(5); rp = r.data || []; } catch(e) {}
+
+  var h = '<div class="sg">';
+  h += '<div class="sc"><div class="sl">👥 Pacienți</div><div class="sv">' + pc + '</div><div class="ss">Total înregistrați</div></div>';
+  h += '<div class="sc"><div class="sl">📅 Programări Azi</div><div class="sv">' + ac + '</div><div class="ss">Confirmate azi</div></div>';
+  h += '<div class="sc"><div class="sl">🎯 Leads Noi</div><div class="sv">' + lc + '</div><div class="ss">Necesită follow-up</div></div>';
+  h += '<div class="sc"><div class="sl">🎫 Abonamente Active</div><div class="sv">' + sc + '</div><div class="ss">Valabile</div></div>';
+  h += '</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  h += '<div><div style="font-size:13px;font-weight:700;margin-bottom:10px">📅 Programări Azi</div>';
+  if (ta.length) {
+    ta.forEach(function(a) {
+      h += '<div class="ai"><div class="at">' + (a.time||'') + '</div><div class="an"><div style="font-weight:600">' + (a.patient_name||'') + '</div><div style="font-size:11px;color:var(--t2)">' + (a.service||'') + ' · ' + (a.therapist||'') + '</div></div><span class="badge ' + (a.status==='confirmat'?'bg':a.status==='anulat'?'br':'by') + '">' + (a.status||'') + '</span></div>';
+    });
+  } else { h += '<div style="color:var(--t3);padding:20px;text-align:center">Nicio programare azi</div>'; }
+  h += '</div><div><div style="font-size:13px;font-weight:700;margin-bottom:10px">👥 Pacienți Recenți</div>';
+  if (rp.length) {
+    rp.forEach(function(p) {
+      var ini = ((p.prenume||'?')[0] + (p.nume||'?')[0]).toUpperCase();
+      h += '<div class="ai"><div class="av" style="width:32px;height:32px;font-size:11px">' + ini + '</div><div class="an"><div style="font-weight:600">' + (p.prenume||'') + ' ' + (p.nume||'') + '</div><div style="font-size:11px;color:var(--t2)">' + (p.diagnostic||'') + '</div></div><span class="badge ' + (p.status==='activ'?'bg':'br') + '">' + (p.status||'') + '</span></div>';
+    });
+  } else { h += '<div style="color:var(--t3);padding:20px;text-align:center">Niciun pacient</div>'; }
+  h += '</div></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+async function renderCal() {
+  var appts = [];
+  try { var r = await db.from('appointments').select('*'); appts = r.data || []; } catch(e) {}
+  var colors = ['e1','e2','e3','e1'];
+  var toolbar = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">';
+  toolbar += '<button class="btn btn-s btn-sm" onclick="calDate=new Date(calDate.getFullYear(),calDate.getMonth()-1,1);renderCal()">← Prev</button>';
+  toolbar += '<button class="btn btn-s btn-sm" onclick="calDate=new Date();renderCal()">Azi</button>';
+  toolbar += '<button class="btn btn-s btn-sm" onclick="calDate=new Date(calDate.getFullYear(),calDate.getMonth()+1,1);renderCal()">Next →</button>';
+  toolbar += '<strong style="font-size:14px">' + calDate.toLocaleDateString('ro-RO',{month:'long',year:'numeric'}) + '</strong>';
+  toolbar += '<div style="margin-left:auto" class="ft">';
+  toolbar += '<button class="ftb ' + (calView==='day'?'on':'') + '" onclick="calView=\'day\';renderCal()">Zi</button>';
+  toolbar += '<button class="ftb ' + (calView==='month'?'on':'') + '" onclick="calView=\'month\';renderCal()">Lună</button>';
+  toolbar += '<button class="ftb ' + (calView==='agenda'?'on':'') + '" onclick="calView=\'agenda\';renderCal()">Listă</button>';
+  toolbar += '</div>';
+  toolbar += '<button class="btn btn-p btn-sm" onclick="document.getElementById(\'adate\').value=\'' + td() + '\';document.getElementById(\'atime\').value=\'09:00\';om(\'m-appt\')">➕ Programare</button>';
+  toolbar += '</div>';
+
+  if (calView === 'agenda') {
+    var up = appts.filter(function(a) { return a.date >= td(); }).sort(function(a,b) { return a.date.localeCompare(b.date)||a.time.localeCompare(b.time); });
+    var h = toolbar;
+    if (up.length) {
+      up.forEach(function(a) {
+        h += '<div class="ai"><div class="at">' + a.date + '<br/>' + (a.time||'') + '</div><div class="an"><div style="font-weight:600">' + (a.patient_name||'') + '</div><div style="font-size:11px;color:var(--t2)">' + (a.service||'') + ' · ' + (a.therapist||'') + '</div></div><span class="badge ' + (a.status==='confirmat'?'bg':'br') + '">' + (a.status||'') + '</span><button class="btn btn-d btn-sm" onclick="delAppt(\'' + a.id + '\')">🗑</button></div>';
+      });
+    } else { h += '<div class="ld">Nicio programare viitoare</div>'; }
+    document.getElementById('content').innerHTML = h;
+    return;
+  }
+
+  if (calView === 'day') {
+    var ds = calDate.toISOString().split('T')[0];
+    var da = appts.filter(function(a) { return a.date === ds; });
+    var h = toolbar + '<div style="font-size:14px;font-weight:700;margin-bottom:10px">' + calDate.toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long'}) + '</div>';
+    if (da.length) {
+      da.forEach(function(a) { h += '<div class="ai"><div class="at">' + (a.time||'') + '</div><div class="an"><div style="font-weight:600">' + (a.patient_name||'') + '</div><div style="font-size:11px;color:var(--t2)">' + (a.service||'') + ' · ' + (a.therapist||'') + ' · ' + (a.duration||50) + 'min</div></div><span class="badge ' + (a.status==='confirmat'?'bg':'br') + '">' + a.status + '</span><button class="btn btn-d btn-sm" onclick="delAppt(\'' + a.id + '\')">🗑</button></div>'; });
+    } else { h += '<div style="color:var(--t3);padding:40px;text-align:center">Nicio programare în această zi.<br/><button class="btn btn-p" style="margin-top:12px" onclick="document.getElementById(\'adate\').value=\'' + ds + '\';document.getElementById(\'atime\').value=\'09:00\';om(\'m-appt\')">➕ Adaugă programare</button></div>'; }
+    document.getElementById('content').innerHTML = h;
+    return;
+  }
+
+  var y = calDate.getFullYear(), m = calDate.getMonth();
+  var first = (new Date(y,m,1).getDay()+6)%7;
+  var days = new Date(y,m+1,0).getDate();
+  var h = toolbar + '<div class="cal-g">';
+  ['Lun','Mar','Mie','Joi','Vin','Sâm','Dum'].forEach(function(d) { h += '<div class="cal-d">' + d + '</div>'; });
+  for (var i=0; i<first; i++) { var d2 = new Date(y,m,-(first-1-i)); h += '<div class="cal-c om"><div class="cal-n">' + d2.getDate() + '</div></div>'; }
+  for (var d=1; d<=days; d++) {
+    var ds = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var da = appts.filter(function(a) { return a.date === ds; });
+    var isT = ds === td();
+    h += '<div class="cal-c' + (isT?' td':'') + '" onclick="calDate=new Date(\'' + ds + '\');calView=\'day\';renderCal()">';
+    h += '<div class="cal-n">' + d + '</div>';
+    da.slice(0,3).forEach(function(a,i) { h += '<div class="cal-e ' + colors[i%4] + '">' + (a.time||'') + ' ' + (a.patient_name||'') + '</div>'; });
+    if (da.length > 3) h += '<div style="font-size:9px;color:var(--t3)">+' + (da.length-3) + '</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+async function renderPats() {
+  var data = [];
+  try {
+    var q2 = db.from('patients').select('*').order('created_at', {ascending:false});
+    if (patFilter === 'activi') q2 = q2.eq('status','activ');
+    else if (patFilter === 'inactivi') q2 = q2.eq('status','inactiv');
+    else if (patFilter === 'noi') q2 = q2.eq('status','nou');
+    var r = await q2;
+    data = r.data || [];
+  } catch(e) {}
+
+  var h = '<div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap">';
+  h += '<div class="ft">';
+  ['toti','activi','inactivi','noi'].forEach(function(f) { h += '<button class="ftb ' + (patFilter===f?'on':'') + '" onclick="patFilter=\'' + f + '\';renderPats()">' + f[0].toUpperCase() + f.slice(1) + '</button>'; });
+  h += '</div>';
+  h += '<input class="inp" style="width:200px" placeholder="🔍 Caută..." oninput="filterPat(this.value)"/>';
+  h += '</div>';
+  h += '<div class="tw"><table><thead><tr><th>Pacient</th><th>Telefon</th><th>Diagnostic</th><th>Status</th><th>Abonament</th><th>Acțiuni</th></tr></thead><tbody id="pat-b">';
+  if (data.length) {
+    data.forEach(function(p) {
+      var ini = ((p.prenume||'?')[0]+(p.nume||'?')[0]).toUpperCase();
+      h += '<tr>';
+      h += '<td><div style="display:flex;align-items:center;gap:9px"><div class="av" style="width:30px;height:30px;font-size:11px">' + ini + '</div><div><div style="font-weight:600">' + (p.prenume||'') + ' ' + (p.nume||'') + '</div><div style="font-size:11px;color:var(--t3)">' + (p.email||'') + '</div></div></div></td>';
+      h += '<td>' + (p.telefon||'—') + '</td>';
+      h += '<td>' + (p.diagnostic||'—') + '</td>';
+      h += '<td><span class="badge ' + (p.status==='activ'?'bg':p.status==='inactiv'?'br':p.status==='nou'?'bb':'bgr') + '">' + (p.status||'—') + '</span></td>';
+      h += '<td>' + (p.subscription ? '<span class="badge by">' + p.subscription + '</span>' : '—') + '</td>';
+      h += '<td><div style="display:flex;gap:5px"><button class="btn btn-s btn-sm" onclick="editPat(' + JSON.stringify(JSON.stringify(p)) + ')">✏️</button><button class="btn btn-d btn-sm" onclick="delPat(\'' + p.id + '\')">🗑</button></div></td>';
+      h += '</tr>';
+    });
+  } else { h += '<tr><td class="et" colspan="6">Niciun pacient. Apasă ➕ să adaugi!</td></tr>'; }
+  h += '</tbody></table></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+function filterPat(v) {
+  document.querySelectorAll('#pat-b tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(v.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function editPat(pStr) {
+  var p = JSON.parse(pStr);
+  editPatId = p.id;
+  document.getElementById('m-pat-t').textContent = 'Editează Pacient';
+  var fields = {pp:'prenume',pn:'nume',pt:'telefon',pe:'email',ps:'sex',pd:'data_nasterii',pst:'status',pa:'subscription',pdiag:'diagnostic',pnote:'note',prec:'recomandat_de',pasig:'asigurare'};
+  Object.keys(fields).forEach(function(id) { var el = document.getElementById(id); if (el) el.value = p[fields[id]] || ''; });
+  om('m-pat');
+}
+
+async function delPat(id) {
+  if (!confirm('Ștergi pacientul?')) return;
+  try { await db.from('patients').delete().eq('id', id); toast('Pacient șters', 'ok'); renderPats(); } catch(e) { toast('Eroare', 'er'); }
+}
+
+async function delAppt(id) {
+  if (!confirm('Ștergi programarea?')) return;
+  try { await db.from('appointments').delete().eq('id', id); toast('Șters', 'ok'); renderCal(); } catch(e) { toast('Eroare', 'er'); }
+}
+
+async function renderLeads() {
+  var data = [];
+  try {
+    var q2 = db.from('leads').select('*').order('created_at', {ascending:false});
+    if (leadFilter !== 'toti') q2 = q2.eq('status', leadFilter);
+    var r = await q2;
+    data = r.data || [];
+  } catch(e) {}
+
+  var h = '<div style="margin-bottom:14px"><div class="ft">';
+  ['toti','nou','contactat','programat','client','pierdut'].forEach(function(s) { h += '<button class="ftb ' + (leadFilter===s?'on':'') + '" onclick="leadFilter=\'' + s + '\';renderLeads()">' + s[0].toUpperCase() + s.slice(1) + '</button>'; });
+  h += '</div></div>';
+  h += '<div class="tw"><table><thead><tr><th>Nume</th><th>Telefon</th><th>Sursă</th><th>Status</th><th>Data</th><th>Acțiuni</th></tr></thead><tbody>';
+  if (data.length) {
+    data.forEach(function(l) {
+      h += '<tr>';
+      h += '<td><div style="font-weight:600">' + (l.prenume||'') + ' ' + (l.nume||'') + '</div><div style="font-size:11px;color:var(--t3)">' + (l.email||'') + '</div></td>';
+      h += '<td>' + (l.telefon||'—') + '</td>';
+      h += '<td><span class="badge bb">' + (l.sursa||'—') + '</span></td>';
+      h += '<td><select class="inp" style="width:120px;padding:3px 7px;font-size:11px" onchange="updLead(\'' + l.id + '\',this.value)">';
+      ['nou','contactat','programat','client','pierdut'].forEach(function(s) { h += '<option' + (l.status===s?' selected':'') + '>' + s + '</option>'; });
+      h += '</select></td>';
+      h += '<td style="font-size:11px;color:var(--t3)">' + new Date(l.created_at).toLocaleDateString('ro-RO') + '</td>';
+      h += '<td><div style="display:flex;gap:5px"><button class="btn btn-s btn-sm" onclick="convLead(\'' + l.id + '\')">👤 Pacient</button><button class="btn btn-d btn-sm" onclick="delLead(\'' + l.id + '\')">🗑</button></div></td>';
+      h += '</tr>';
+    });
+  } else { h += '<tr><td class="et" colspan="6">Niciun lead</td></tr>'; }
+  h += '</tbody></table></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+async function updLead(id, status) { try { await db.from('leads').update({status:status}).eq('id',id); toast('Status actualizat','ok'); } catch(e) {} }
+async function delLead(id) { if (!confirm('Ștergi lead-ul?')) return; try { await db.from('leads').delete().eq('id',id); toast('Șters','ok'); renderLeads(); } catch(e) {} }
+async function convLead(id) {
+  var r = await db.from('leads').select('*').eq('id',id).single();
+  var l = r.data;
+  if (!l || !confirm('Convertești ' + l.prenume + ' în pacient?')) return;
+  try { await db.from('patients').insert({prenume:l.prenume,nume:l.nume,telefon:l.telefon,email:l.email,status:'nou'}); await db.from('leads').update({status:'client'}).eq('id',id); toast(l.prenume + ' adăugat ca pacient!','ok'); renderLeads(); } catch(e) { toast('Eroare','er'); }
+}
+
+async function renderSubs() {
+  var data = [];
+  try { var r = await db.from('subscriptions').select('*').order('created_at',{ascending:false}); data = r.data || []; } catch(e) {}
+  var h = '<div class="tw"><table><thead><tr><th>Pacient</th><th>Tip</th><th>Serviciu</th><th>Ședințe</th><th>Preț</th><th>Expiră</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
+  if (data.length) {
+    data.forEach(function(s) {
+      var pct = s.total_sedinte ? Math.round(((s.total_sedinte-(s.sedinte_ramase||0))/s.total_sedinte)*100) : 0;
+      h += '<tr>';
+      h += '<td style="font-weight:600">' + (s.patient_name||'—') + '</td>';
+      h += '<td>' + (s.tip||'—') + '</td>';
+      h += '<td>' + (s.serviciu||'—') + '</td>';
+      h += '<td>' + (s.total_sedinte ? '<div style="display:flex;align-items:center;gap:8px"><div class="pb"><div class="pf" style="width:' + pct + '%"></div></div><span style="font-size:11px">' + (s.sedinte_ramase||0) + '/' + s.total_sedinte + '</span></div>' : '∞') + '</td>';
+      h += '<td style="font-weight:700;color:var(--accent)">' + (s.pret?s.pret+' RON':'—') + '</td>';
+      h += '<td style="font-size:11px">' + (s.data_expirare||'—') + '</td>';
+      h += '<td><span class="badge ' + (s.status==='activ'?'bg':'br') + '">' + (s.status||'—') + '</span></td>';
+      h += '<td><div style="display:flex;gap:5px"><button class="btn btn-s btn-sm" onclick="decSed(\'' + s.id + '\',' + (s.sedinte_ramase||0) + ')">-1 ședință</button><button class="btn btn-d btn-sm" onclick="delAbo(\'' + s.id + '\')">🗑</button></div></td>';
+      h += '</tr>';
+    });
+  } else { h += '<tr><td class="et" colspan="8">Niciun abonament</td></tr>'; }
+  h += '</tbody></table></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+async function decSed(id, cur) {
+  if (cur <= 0) { toast('Nu mai sunt ședințe!','er'); return; }
+  var n = cur-1;
+  try { await db.from('subscriptions').update({sedinte_ramase:n,status:n===0?'expirat':'activ'}).eq('id',id); toast('Ședință utilizată. Rămase: '+n,'ok'); renderSubs(); } catch(e) { toast('Eroare','er'); }
+}
+async function delAbo(id) { if (!confirm('Ștergi abonamentul?')) return; try { await db.from('subscriptions').delete().eq('id',id); toast('Șters','ok'); renderSubs(); } catch(e) {} }
+
+async function renderSvcs() {
+  var data = [];
+  try { var r = await db.from('services').select('*').order('descriere'); data = r.data || []; } catch(e) {}
+  var svc = data.filter(function(s) { return s.descriere !== 'abonament'; });
+  var abo = data.filter(function(s) { return s.descriere === 'abonament'; });
+  var cmap = {teal:'var(--accent)',blue:'var(--blue)',purple:'var(--purple)',orange:'var(--orange)'};
+
+  var h = '<div style="margin-bottom:24px"><div style="font-size:14px;font-weight:700;margin-bottom:12px">🛠 Servicii — 1 ședință individuală</div>';
+  h += '<div class="tw"><table><thead><tr><th>Serviciu</th><th>Durată</th><th>Preț / ședință</th></tr></thead><tbody>';
+  if (svc.length) {
+    svc.forEach(function(s) {
+      var c = cmap[s.culoare] || 'var(--accent)';
+      h += '<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:' + c + '"></div><span style="font-weight:600">' + (s.nume||'') + '</span></div></td><td>' + (s.durata?s.durata+' min':'—') + '</td><td style="font-weight:700;color:var(--accent)">' + (s.pret?s.pret+' RON':'—') + '</td></tr>';
+    });
+  } else { h += '<tr><td class="et" colspan="3">Niciun serviciu</td></tr>'; }
+  h += '</tbody></table></div></div>';
+
+  h += '<div><div style="font-size:14px;font-weight:700;margin-bottom:12px">🎫 Abonamente — pachete multiple ședințe</div>';
+  h += '<div class="tw"><table><thead><tr><th>Abonament</th><th>Durată / ședință</th><th>Preț total</th><th>Preț / ședință</th></tr></thead><tbody>';
+  if (abo.length) {
+    abo.forEach(function(s) {
+      var c = cmap[s.culoare] || 'var(--accent)';
+      var nr = parseInt((s.nume||'').match(/\d+/) || ['1']) || 1;
+      var ps = nr > 0 ? Math.round(s.pret/nr) : s.pret;
+      h += '<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:' + c + '"></div><span style="font-weight:600">' + (s.nume||'') + '</span></div></td><td>' + (s.durata?s.durata+' min':'—') + '</td><td style="font-weight:700;color:var(--accent)">' + (s.pret?s.pret+' RON':'—') + '</td><td style="color:var(--green);font-weight:600">' + ps + ' RON</td></tr>';
+    });
+  } else { h += '<tr><td class="et" colspan="4">Niciun abonament</td></tr>'; }
+  h += '</tbody></table></div></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+async function renderReports() {
+  var pats = [], appts = [], subs = [];
+  try { var r = await db.from('patients').select('*'); pats = r.data || []; } catch(e) {}
+  try { var r = await db.from('appointments').select('*'); appts = r.data || []; } catch(e) {}
+  try { var r = await db.from('subscriptions').select('*'); subs = r.data || []; } catch(e) {}
+
+  var activi = pats.filter(function(p) { return p.status==='activ'; }).length;
+  var inactivi = pats.filter(function(p) { return p.status==='inactiv'; }).length;
+  var noi = pats.filter(function(p) { return p.status==='nou'; }).length;
+  var venituri = subs.reduce(function(s,a) { return s+(parseFloat(a.pret)||0); }, 0);
+
+  var perT = {};
+  appts.forEach(function(a) { if (a.therapist) perT[a.therapist] = (perT[a.therapist]||0)+1; });
+  var maxT = Math.max.apply(null, Object.values(perT).concat([1]));
+
+  var h = '<div class="sg">';
+  h += '<div class="sc"><div class="sl">👥 Total Pacienți</div><div class="sv">' + pats.length + '</div></div>';
+  h += '<div class="sc"><div class="sl">✅ Activi</div><div class="sv" style="color:var(--green)">' + activi + '</div></div>';
+  h += '<div class="sc"><div class="sl">💤 Inactivi</div><div class="sv" style="color:var(--red)">' + inactivi + '</div></div>';
+  h += '<div class="sc"><div class="sl">🆕 Noi</div><div class="sv" style="color:var(--blue)">' + noi + '</div></div>';
+  h += '</div>';
+
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  h += '<div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:14px">👨‍⚕️ Programări per Terapeut</div>';
+  Object.entries(perT).forEach(function(e) {
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="av" style="width:28px;height:28px;font-size:10px">' + e[0][0] + '</div><div style="flex:1"><div style="font-size:13px;font-weight:600">' + e[0] + '</div><div class="pb"><div class="pf" style="width:' + Math.round(e[1]/maxT*100) + '%"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--accent)">' + e[1] + '</div></div>';
+  });
+  if (!Object.keys(perT).length) h += '<div style="color:var(--t3);text-align:center;padding:20px">Nicio programare</div>';
+  h += '</div>';
+
+  h += '<div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:14px">💰 Venituri Abonamente</div>';
+  h += '<div style="font-size:32px;font-weight:800;color:var(--accent);margin:16px 0">' + venituri.toLocaleString('ro-RO') + ' RON</div>';
+  h += '<div style="font-size:13px;color:var(--t2)">' + subs.filter(function(s) { return s.status==='activ'; }).length + ' abonamente active</div>';
+  h += '</div></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+async function renderTeam() {
+  var data = [];
+  try { var r = await db.from('team').select('*').order('prenume'); data = r.data || []; } catch(e) {}
+  
+  var h = '<div style="display:flex;gap:10px;margin-bottom:20px">';
+  h += '<button class="btn btn-p" onclick="openTeamModal(null)">➕ Adaugă Membru</button>';
+  h += '</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">';
+  
+  if (data.length) {
+    data.forEach(function(m) {
+      var ini = ((m.prenume||'?')[0]+(m.nume||'?')[0]).toUpperCase();
+      var col = m.culoare || '#2DD4BF';
+      var zile = ['Lun','Mar','Mie','Joi','Vin','Sâm','Dum'];
+      var keys = ['luni','marti','miercuri','joi','vineri','sambata','duminica'];
+      var schedule = '';
+      keys.forEach(function(k, i) {
+        var start = m[k+'_start'], end = m[k+'_end'];
+        if (start && end) {
+          schedule += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="color:var(--t2)">' + zile[i] + '</span><span style="color:var(--accent);font-weight:600">' + start.slice(0,5) + ' - ' + end.slice(0,5) + '</span></div>';
+        } else {
+          schedule += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="color:var(--t2)">' + zile[i] + '</span><span style="color:var(--t3)">Liber</span></div>';
+        }
+      });
+      
+      h += '<div class="sc" style="padding:0;overflow:hidden">';
+      h += '<div style="background:' + col + '22;border-bottom:3px solid ' + col + ';padding:20px;text-align:center">';
+      h += '<div style="width:56px;height:56px;border-radius:50%;background:' + col + ';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#080C14;margin:0 auto 10px">' + ini + '</div>';
+      h += '<div style="font-weight:700;font-size:15px">' + (m.prenume||'') + ' ' + (m.nume||'') + '</div>';
+      h += '<div style="color:' + col + ';font-size:12px;margin:3px 0">' + (m.rol||'') + '</div>';
+      h += '<div style="color:var(--t3);font-size:11px">' + (m.specialitate||'') + '</div>';
+      h += '<span class="badge ' + (m.activ?'bg':'br') + '" style="margin-top:8px;display:inline-flex">' + (m.activ?'✅ Activ':'❌ Inactiv') + '</span>';
+      h += '</div>';
+      
+      h += '<div style="padding:14px">';
+      if (m.telefon) h += '<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📞 ' + m.telefon + '</div>';
+      if (m.email) h += '<div style="font-size:12px;color:var(--t2);margin-bottom:4px">✉️ ' + m.email + '</div>';
+      if (m.data_angajare) h += '<div style="font-size:12px;color:var(--t2);margin-bottom:8px">📅 Angajat: ' + m.data_angajare + '</div>';
+      if (m.bio) h += '<div style="font-size:12px;color:var(--t2);margin-bottom:8px;font-style:italic">' + m.bio + '</div>';
+      
+      h += '<div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Program</div>';
+      h += schedule;
+      
+      h += '<div style="display:flex;gap:6px;margin-top:12px">';
+      h += '<button class="btn btn-s btn-sm" style="flex:1" onclick="openTeamModal(' + JSON.stringify(JSON.stringify(m)) + ')">✏️ Editează</button>';
+      h += '<button class="btn btn-d btn-sm" onclick="delTeam(\"' + m.id + '\")">Del</button>';
+      h += '</div>';
+      h += '</div></div>';
+    });
+  } else {
+    h += '<div class="ld" style="grid-column:1/-1">Niciun membru. Adaugă primul terapeut! 👆</div>';
+  }
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+function openTeamModal(mStr) {
+  var m = mStr ? JSON.parse(mStr) : null;
+  window._editTeamId = m ? m.id : null;
+  window._teamData = m;
+  
+  var zile = ['luni','marti','miercuri','joi','vineri','sambata','duminica'];
+  var zileLabel = ['Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă','Duminică'];
+  
+  var existing = document.getElementById('m-team');
+  if (existing) existing.remove();
+  
+  var div = document.createElement('div');
+  div.className = 'mo';
+  div.id = 'm-team';
+  div.style.display = 'flex';
+  
+  var inner = document.createElement('div');
+  inner.className = 'md';
+  inner.style.width = '620px';
+  inner.style.maxHeight = '90vh';
+  
+  var mh = document.createElement('div');
+  mh.className = 'mh';
+  mh.innerHTML = '<span style="font-size:15px;font-weight:700">' + (m?'Editează Membru':'Adaugă Membru') + '</span><button class="cx" id="close-team-modal">×</button>';
+  
+  var mb = document.createElement('div');
+  mb.className = 'mb';
+  mb.style.display = 'grid';
+  mb.style.gridTemplateColumns = '1fr 1fr';
+  mb.style.gap = '13px';
+  
+  function field(id, label, type, val, placeholder, full) {
+    var d = document.createElement('div');
+    d.className = 'ig' + (full?' full':'');
+    if (full) d.style.gridColumn = '1/-1';
+    d.innerHTML = '<label class="il">' + label + '</label>';
+    var inp = document.createElement(type==='textarea'?'textarea':'input');
+    inp.className = 'inp';
+    inp.id = id;
+    if (type !== 'textarea') inp.type = type||'text';
+    if (type === 'textarea') { inp.rows = 2; inp.style.resize = 'vertical'; }
+    inp.value = val||'';
+    if (placeholder) inp.placeholder = placeholder;
+    d.appendChild(inp);
+    return d;
+  }
+  
+  mb.appendChild(field('tm-pp','Prenume *','text',m?m.prenume:'','Prenume'));
+  mb.appendChild(field('tm-pn','Nume','text',m?m.nume:'','Nume'));
+  
+  var rolDiv = document.createElement('div'); rolDiv.className='ig';
+  rolDiv.innerHTML='<label class="il">Rol</label><select class="inp" id="tm-rol"><option>Kinetoterapeut</option><option>Maseur</option><option>Antrenor EMS</option><option>Antrenor Functional</option><option>Manager</option><option>Receptionist</option></select>';
+  mb.appendChild(rolDiv);
+  
+  mb.appendChild(field('tm-spec','Specialitate','text',m?m.specialitate:'','ex: Fiziokinetoterapie'));
+  mb.appendChild(field('tm-tel','Telefon','text',m?m.telefon:'','07xx xxx xxx'));
+  mb.appendChild(field('tm-email','Email','email',m?m.email:'','email@exemplu.com'));
+  mb.appendChild(field('tm-data','Data angajare','date',m?m.data_angajare:''));
+  
+  var colDiv = document.createElement('div'); colDiv.className='ig';
+  colDiv.innerHTML='<label class="il">Culoare calendar</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="tm-col" value="' + (m?m.culoare||'#2DD4BF':'#2DD4BF') + '" style="width:44px;height:36px;border:1px solid var(--border);border-radius:7px;cursor:pointer"><span style="font-size:12px;color:var(--t3)">Culoare pe calendar</span></div>';
+  mb.appendChild(colDiv);
+  
+  var bioDiv = document.createElement('div'); bioDiv.className='ig'; bioDiv.style.gridColumn='1/-1';
+  bioDiv.innerHTML='<label class="il">Bio public</label><textarea class="inp" id="tm-bio" rows="2" placeholder="Descriere pentru pagina de booking...">' + (m?m.bio||'':'') + '</textarea>';
+  mb.appendChild(bioDiv);
+  
+  var noteDiv = document.createElement('div'); noteDiv.className='ig'; noteDiv.style.gridColumn='1/-1';
+  noteDiv.innerHTML='<label class="il">Note interne (private)</label><textarea class="inp" id="tm-note" rows="2" placeholder="Observații...">' + (m?m.note_interne||'':'') + '</textarea>';
+  mb.appendChild(noteDiv);
+  
+  var activDiv = document.createElement('div'); activDiv.className='ig'; activDiv.style.gridColumn='1/-1';
+  activDiv.innerHTML='<label class="il">Status</label><select class="inp" id="tm-activ"><option value="true">✅ Activ</option><option value="false">❌ Inactiv</option></select>';
+  mb.appendChild(activDiv);
+  
+  // Schedule
+  var schedDiv = document.createElement('div');
+  schedDiv.style.gridColumn='1/-1';
+  var schedTitle = document.createElement('div');
+  schedTitle.style.cssText = 'font-size:13px;font-weight:700;margin-bottom:12px';
+  schedTitle.textContent = '🕐 Program Săptămânal';
+  schedDiv.appendChild(schedTitle);
+  
+  zile.forEach(function(z, i) {
+    var hasDay = m && m[z+'_start'];
+    var isWeekend = z==='sambata'||z==='duminica';
+    var active = hasDay || (!m && !isWeekend);
+    var sVal = m && m[z+'_start'] ? m[z+'_start'].slice(0,5) : (active?'08:00':'');
+    var eVal = m && m[z+'_end'] ? m[z+'_end'].slice(0,5) : (active?'17:00':'');
+    
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:8px';
+    
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'ch_'+z;
+    cb.checked = active;
+    cb.style.accentColor = 'var(--accent)';
+    cb.addEventListener('change', function() {
+      document.getElementById('s_'+z).disabled = !cb.checked;
+      document.getElementById('e_'+z).disabled = !cb.checked;
+      if (cb.checked) { document.getElementById('s_'+z).value='08:00'; document.getElementById('e_'+z).value='17:00'; }
+      else { document.getElementById('s_'+z).value=''; document.getElementById('e_'+z).value=''; }
+    });
+    
+    var lbl = document.createElement('label');
+    lbl.style.cssText = 'font-size:12px;font-weight:600;width:70px;color:var(--t2)';
+    lbl.textContent = zileLabel[i];
+    
+    var sInp = document.createElement('input');
+    sInp.type='time'; sInp.id='s_'+z; sInp.className='inp'; sInp.style.width='100px';
+    sInp.value=sVal; sInp.disabled=!active;
+    
+    var sep = document.createElement('span');
+    sep.style.cssText='color:var(--t3);font-size:12px';
+    sep.textContent='→';
+    
+    var eInp = document.createElement('input');
+    eInp.type='time'; eInp.id='e_'+z; eInp.className='inp'; eInp.style.width='100px';
+    eInp.value=eVal; eInp.disabled=!active;
+    
+    row.appendChild(cb); row.appendChild(lbl); row.appendChild(sInp); row.appendChild(sep); row.appendChild(eInp);
+    schedDiv.appendChild(row);
+  });
+  mb.appendChild(schedDiv);
+  
+  var mf = document.createElement('div');
+  mf.className = 'mf';
+  mf.innerHTML = '<button class="btn btn-s" id="cancel-team-btn">Anulează</button><button class="btn btn-p" onclick="saveTeam()">💾 Salvează</button>';
+  
+  inner.appendChild(mh);
+  inner.appendChild(mb);
+  inner.appendChild(mf);
+  div.appendChild(inner);
+  document.body.appendChild(div);
+  
+  // Set select values
+  if (m && m.rol) { var sel=document.getElementById('tm-rol'); for(var i=0;i<sel.options.length;i++){if(sel.options[i].text===m.rol){sel.selectedIndex=i;break;}} }
+  if (m && !m.activ) { document.getElementById('tm-activ').value='false'; }
+  
+  document.getElementById('close-team-modal').onclick = function() { div.remove(); };
+  document.getElementById('cancel-team-btn').onclick = function() { div.remove(); };
+  div.addEventListener('click', function(e) { if(e.target===div) div.remove(); });
+}
+
+
+async function saveTeam() {
+  var pp = document.getElementById('tm-pp').value.trim();
+  var pn = document.getElementById('tm-pn').value.trim();
+  if (!pp) { toast('Prenumele este obligatoriu!','er'); return; }
+  
+  var zile = ['luni','marti','miercuri','joi','vineri','sambata','duminica'];
+  var data = {
+    prenume: pp, nume: pn||null,
+    rol: document.getElementById('tm-rol').value,
+    specialitate: document.getElementById('tm-spec').value||null,
+    telefon: document.getElementById('tm-tel').value||null,
+    email: document.getElementById('tm-email').value||null,
+    data_angajare: document.getElementById('tm-data').value||null,
+    culoare: document.getElementById('tm-col').value,
+    bio: document.getElementById('tm-bio').value||null,
+    note_interne: document.getElementById('tm-note').value||null,
+    activ: document.getElementById('tm-activ').value === 'true'
+  };
+  
+  zile.forEach(function(z) {
+    var ch = document.getElementById('ch_'+z);
+    if (ch && ch.checked) {
+      data[z+'_start'] = document.getElementById('s_'+z).value||null;
+      data[z+'_end'] = document.getElementById('e_'+z).value||null;
+    } else {
+      data[z+'_start'] = null;
+      data[z+'_end'] = null;
+    }
+  });
+  
+  try {
+    var err;
+    if (window._editTeamId) {
+      var r = await db.from('team').update(data).eq('id', window._editTeamId); err = r.error;
+    } else {
+      var r = await db.from('team').insert(data); err = r.error;
+    }
+    if (err) throw err;
+    toast(window._editTeamId?'Membru actualizat!':'Membru adăugat!','ok');
+    document.getElementById('m-team').remove();
+    renderTeam();
+  } catch(e) { toast('Eroare: '+e.message,'er'); }
+}
+
+async function delTeam(id) {
+  if (!confirm('Ștergi membrul din echipă?')) return;
+  try { await db.from('team').delete().eq('id',id); toast('Șters','ok'); renderTeam(); } catch(e) { toast('Eroare','er'); }
+}
+
+function renderBooking() {
+  document.getElementById('content').innerHTML = '<div style="max-width:500px;margin:40px auto;text-align:center"><div style="font-size:48px;margin-bottom:16px">🔗</div><h2 style="font-weight:800;margin-bottom:8px">Booking Online</h2><p style="color:var(--t3);margin-bottom:24px;font-size:13px">Distribuie acest link pacienților</p><div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:monospace;font-size:12px;color:var(--accent);margin-bottom:16px">' + window.location.origin + '</div><button class="btn btn-p" onclick="toast(\'Link copiat!\',\'ok\')">📋 Copiază Link</button></div>';
+}
+
+async function savePat() {
+  if (!gv('pp')) { toast('Prenumele este obligatoriu!','er'); return; }
+  var raw = {prenume:gv('pp'),nume:gv('pn')||null,telefon:gv('pt')||null,email:gv('pe')||null,sex:gv('ps')||null,data_nasterii:gv('pd')||null,status:gv('pst')||'activ',subscription:gv('pa')||null,diagnostic:gv('pdiag')||null,note:gv('pnote')||null,recomandat_de:gv('prec')||null,asigurare:gv('pasig')||null};
+  var data = {};
+  Object.keys(raw).forEach(function(k) { if (raw[k] !== null && raw[k] !== '') data[k] = raw[k]; });
+  try {
+    var err;
+    if (editPatId) { var r = await db.from('patients').update(data).eq('id',editPatId); err = r.error; }
+    else { var r = await db.from('patients').insert(data); err = r.error; }
+    if (err) throw err;
+    toast(editPatId?'Pacient actualizat!':'Pacient adăugat!','ok');
+    editPatId = null; cm('m-pat'); renderPats();
+  } catch(e) { toast('Eroare: '+e.message,'er'); }
+}
+
+async function saveAppt() {
+  if (!gv('ap') || !gv('adate')) { toast('Completează pacientul și data!','er'); return; }
+  var data = {patient_name:gv('ap'),service:gv('asvc'),therapist:gv('ath'),date:gv('adate'),time:gv('atime'),duration:parseInt(gv('adur')),status:gv('ast'),note:gv('anote')||null};
+  try { var r = await db.from('appointments').insert(data); if (r.error) throw r.error; toast('Programare salvată!','ok'); cm('m-appt'); render(); } catch(e) { toast('Eroare: '+e.message,'er'); }
+}
+
+async function saveAbo() {
+  if (!gv('abp')) { toast('Selectează pacientul!','er'); return; }
+  var nr = parseInt(document.getElementById('abnr').value)||null;
+  var tip = document.getElementById('abtip').value;
+  var tipLabel = tip === 'lunar' ? 'Lunar (nelimitat)' : (nr ? nr + ' ședințe' : 'Custom');
+  var svc = gv('absvc');
+  var dur = gv('abdur');
+  var label = tipLabel + (dur ? ' x ' + dur + 'min' : '') + ' - ' + svc;
+  var data = {
+    patient_name: gv('abp'),
+    tip: label,
+    serviciu: svc,
+    pret: parseFloat(document.getElementById('abpret').value)||0,
+    data_start: gv('abstart')||td(),
+    data_expirare: gv('abexp')||null,
+    total_sedinte: tip==='lunar' ? null : nr,
+    sedinte_ramase: tip==='lunar' ? null : nr,
+    status: 'activ',
+    note: gv('abnote')||null
+  };
+  try { var r = await db.from('subscriptions').insert(data); if (r.error) throw r.error; toast('Abonament adăugat!','ok'); cm('m-abo'); renderSubs(); } catch(e) { toast('Eroare: '+e.message,'er'); }
+}
+
+async function saveLead() {
+  if (!gv('lp') && !gv('lt')) { toast('Completează prenumele!','er'); return; }
+  var data = {prenume:gv('lp')||null,nume:gv('ln')||null,telefon:gv('lt')||null,email:gv('le')||null,sursa:gv('lsrc'),serviciu_interes:gv('lsvc'),nota:gv('lnote')||null,status:'nou'};
+  var d2 = {};
+  Object.keys(data).forEach(function(k) { if (data[k]) d2[k] = data[k]; });
+  try { var r = await db.from('leads').insert(d2); if (r.error) throw r.error; toast('Lead adăugat!','ok'); cm('m-lead'); renderLeads(); } catch(e) { toast('Eroare: '+e.message,'er'); }
+}
+
+function aboC() {
+  var tip = document.getElementById('abtip').value;
+  var nr = {custom:null,'5':5,'10':10,'20':20,lunar:null};
+  var pm = {custom:0,'5':700,'10':1350,'20':2500,lunar:1200};
+  var nrVal = nr[tip];
+  if (nrVal) document.getElementById('abnr').value = nrVal;
+  document.getElementById('abpret').value = pm[tip]||0;
+  var exp = new Date(); exp.setDate(exp.getDate()+(tip==='lunar'?30:180));
+  document.getElementById('abexp').value = exp.toISOString().split('T')[0];
+  document.getElementById('abstart').value = new Date().toISOString().split('T')[0];
+  aboCalc();
+}
+
+function aboCalc() {
+  var nr = parseInt(document.getElementById('abnr').value)||0;
+  var pret = parseFloat(document.getElementById('abpret').value)||0;
+  var wrap = document.getElementById('ab-calc-wrap');
+  if (nr > 0 && pret > 0) {
+    var ps = Math.round(pret/nr);
+    document.getElementById('ab-ps').textContent = ps + ' RON';
+    wrap.style.display = 'block';
+  } else { wrap.style.display = 'none'; }
+}
+
+function gv(id) { var el = document.getElementById(id); return el ? (el.value||'').trim() : ''; }
+function td() { return new Date().toISOString().split('T')[0]; }
+function om(id) { document.getElementById(id).style.display='flex'; }
+function cm(id) { document.getElementById(id).style.display='none'; }
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = (type==='ok'?'✅ ':'❌ ') + msg;
+  t.className = 'toast ' + (type||'ok');
+  t.style.display = 'flex';
+  setTimeout(function() { t.style.display='none'; }, 3000);
+}
+
+document.querySelectorAll('.mo').forEach(function(el) {
+  el.addEventListener('click', function(e) { if (e.target===el) cm(el.id); });
+});
+
+document.getElementById('pg-sub').textContent = new Date().toLocaleDateString('ro-RO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+go('dashboard');
+</script>
+</body>
+</html>
